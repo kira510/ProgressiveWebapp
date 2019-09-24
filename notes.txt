@@ -1,0 +1,159 @@
+Progressive Web apps:
+  Add certain features to a web application basically enhance web aps to look and feel like native mobile
+  apps. Some characteristics of PWA are,
+    1. Reliable: load fast and provide offline functionality
+    2. Fast:  Respond quickly to user actions
+    3. Engaging: Feel like native app on mobile devices.
+
+Things to know about your browser:
+  applications -> service worker, storage, toggle online offline, session storage, cookies, cache
+  Network -> disable cache, toggle offline, online
+
+Core Building blocks
+  Service Workers: are supported in modern browers,
+    They are javascript programme running in background even if your application is closed. They are the Core
+    building block because they allow us to get offline access to cache some files and serve them if we dont
+    have internet connection.
+    They are user for:
+          1. Background sync: sync user data in background
+          2. web push: mobile like push notifications
+  Application Manifest: makes application installable on homescreen.
+  Responsive Design
+
+SPAs vs PWAs
+  SPA:
+    1. powered by javascript
+    2. Highly reactive to user input
+    3. only HTML file sent to browser
+  PWA:
+    1. Uses a lot of javascript (but works without it)
+    2. Highly reactive (main focus on initial loading time reduction)
+    3. Works with multiple files
+
+Project structure
+  Normal nodejs project with http-server running the main index.js (see package.json)
+    npm start => "http-server -c-1"
+  -c-1 flag will ensure that we dont cache any assets using the normal browser cache.
+  There are two caches, browser cache and service worker cache.
+
+Web App Manifest
+  Makes your web app installable. This will help your website behave like a native webapp.
+
+Manifest.json
+  Add this link of type manifest in all the index.htlm pages you use.
+      <link rel="manifest" href="/manifest.json">
+  Its a Json file with several key properties,
+    {
+      name: 'long name of the app',
+      short_name: 'sweaty',                        //short name for app
+      start_url: '/index/html',                    //which page to load on startup
+      scope: '.',                                  //pages included in PWA experience
+      display: 'standalone',                       //should it look like a standalone app
+      background_color: '#fff',                    //Background whilst loading
+      theme_color: '#3f51b5',                      //Theme color(eg: on top bat in task switcher)
+      description: 'keep runnin untill you are super sweaty,
+      dir: 'ltr',                                  //Read direction of your app, left to right
+      lang: 'en-US',
+      orientation: 'potraid-primary',              //landscape or potrait or any
+      icons: [...],
+      related-applications: [...]
+    }
+
+    icons: [
+      {
+        src: '../../../public/image/some.png',
+        type: 'omage/png',
+        sizes: '48x48'                              //best size for browser
+      },
+      {
+        .
+        .
+        .
+      }
+    ]
+
+    related-applications: [
+      {
+        platform: 'play',
+        url: 'bla bla bla',
+        id: 'some id'
+      }
+    ]
+
+  display: standalone, fullscreen, minimal-ui (standalone but minimal ui options), browser
+
+Android studio
+  This can be used to simulate a mobile environment. I created a virtual pixel 3 using this.
+  Install android studio and then create a mobile environment through AVD manager.
+  To navigate to your http://localhost:8080 ,
+      => http://10.0.2.2:8080 : this is proxy to your localhost.
+
+Application Tab in Chrome:
+  Manifest:
+    Used to detect the manifest.json written in the project.
+
+Standalone App
+  Now click on the three dots at the top right and click -> "Add to home screen" ,
+  this will create an icon on the hoescreen with the short name you gave in manifest as default.
+  Now when you click on this, it opens like a standalone app unlike before where the main bar
+  at top is of chrome.
+
+Service Workers
+  This makes our application work in background and offline ready. Helps us acheive push notifications
+  and backgroung synchronization.
+  1. Runs on additinal thread and decoupled from the HTML pages
+  2. Manages All Pages of a given scope(ex all pages of a domain)
+  3. Lives on even after pages have been closed
+
+"Listenable" Events in service worker
+  1. Fetch: Browser or page-related JS initiates a Fetch (http request)
+  2. Push notifications: Service worker receives Web Push Notification (from server)
+  3. Notification interaction: User interacts with displayed Notification
+  4. Background Sync: Service Worker receives Background Sync Event (ex: internet connection restored)
+  5. Service Worker Lifecycle: service worker Phase changes
+
+Service Worker Lifecycle
+  1. index.html loads app.js on browser
+  2. Registration: if allowed to register (runs a sw.js) by user
+  3. Installation: fires an install Event
+  4. Activation: fires activate Event, service worker now controls all pages of scope
+  5. Idle: it becomes Idle
+  6. Termination: sleeps and listens for Events
+
+Service workers and https
+  Service workers work only with https, why?
+    It has lot of power, you can intercept any request. So you must ensure that it is served on a
+    secure host and not on any host it is encrypted and not abused.
+
+Service worker Activation
+  If you open your app in a tab and reload after changing service worker, it does not activate it
+  again, activation will be pending (browser -> application -> Service Worker).
+  You must close the existing tab and open a new one to activate it.
+  Other ways in Browser -> Application,
+    1. check "Update on reload"
+    2. click on "Update" or "Unregister"
+    3. click on "skip waiting"
+  These are tricks for development mode but "not production".
+
+Service worker non-life cycle Events (others apart from install and activate)
+  example: fetch
+  Fetch is triggered by your web application.
+  Install and activate is triggered by your browser while installing and activating the service worker.
+
+Connecting to emulated device browser from your laptop browser:
+  We can click on browser settings -> more -> remote devices.
+  Here you can see your device, add a route that localhost:8080 of device redirects localhost:8080 of your
+  laptop in the settings tab of Remote devices. After this, click on the device and add new url
+  localhost:8080 , click on inspect and see the magic.
+
+
+
+
+
+
+
+
+
+
+
+
