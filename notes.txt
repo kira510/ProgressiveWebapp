@@ -146,7 +146,50 @@ Connecting to emulated device browser from your laptop browser:
   laptop in the settings tab of Remote devices. After this, click on the device and add new url
   localhost:8080 , click on inspect and see the magic.
 
+BeforeInstallPrompt
+  Docs: https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent
+  Whenever a browser detects a PWA, it basically triggers this event before prompting the user to install
+  the PWA on their webscreen.
+  You can block this and control the prompt yourself. For example, store the event in a variable and use it
+  when user clicks on the event only.
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredPrompt = event;
+      return false;
+    });
 
+  Example code to control the prompt.
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+
+      deferredPrompt.userChoice.then((choiceResult) => {
+        console.log(choiceResult);
+
+        if (choiceResult.outcome === 'dismissed') {
+          console.log('User cancelled installation');
+        } else {
+          console.log('User added to homescreen');
+        }
+
+        deferredPrompt = null;
+      })
+    }
+
+Fetch and CORS
+  Sometimes when you try to fetch, your server might not be in the same region of the server sending
+  the response , at times like that you can set the mode to 'no-cors' to avoid an error saying that
+  no cross origin headers was found where you will get a response without any data.
+    fetch('some url', {
+      mode: 'no-cors' //by default, its set to cors
+    })
+
+Fetch vs Ajax
+  See the code example in app.js
+  DOCS for fecth api usage in detail: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+
+FetchEvent.respondWith()
+  docs: https://developer.mozilla.org/en-US/docs/Web/API/FetchEvent/respondWith
+  This is used after the registration of serviceworker.
 
 
 
