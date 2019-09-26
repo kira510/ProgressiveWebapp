@@ -191,12 +191,114 @@ FetchEvent.respondWith()
   docs: https://developer.mozilla.org/en-US/docs/Web/API/FetchEvent/respondWith
   This is used after the registration of serviceworker.
 
+The Cache API
+  Multiple caching available:
+    1. server cache: not available for offline access
+    2. browser cache: managed by browser, we cant tell what to cache and what not to
+    3. cachi-api: a separate cache available in browser that can be programmed by the users to select the items
+        to be cached.
+  This API has following methods,
+    1. key: reques, value: response
+    2. Can be access through "Service Worker" and "Normal JS"
 
+  When offline, you cant access the cache via Normal js cause this does not load since we cannot reach the server.
+  Hence service worker is the best way to go.
 
+Caching
+  Docs
+    https://developer.mozilla.org/en-US/docs/Web/API/Cache
+  When?
+    During the installation of the service worker.
+  What?
+    index.html, app.js, app.css, image.png
+  How?
+    The below piece of code is the best example, event waitUntill makes the JS wait till the promise
+    called inside it is resolved.
+    Docs: https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent/waitUntil
+        self.addEventListener('install', (event) => {
+          console.log('[Service Worker] installing ', event);
 
+          //open a new cache and give your own name
+          event.waitUntil(
+            caches.open('static')
+              .then((cache) => {
+                console.log('[Service worker] Precaching App shell');
+                cache.add('/');
+                cache.add('/index.html');
+                cache.add('/src/js/app.js');
+              })
+          )
+        });
+    NOTE: We are caching '/', imagine these as requests and not actual path. We are caching the actual
+    request, for ex: cache.add('/index.html'); is actual caching of the response of localhost://index.html.
 
+Steps done in caching
+  1. Static and dynamic caching
+    Caching must be done in the installation phase of the service worker, where you add all the static
+    caches. Refer app.js .
+        self.addEventListener('install', (event) => {
+            event.waitUntil(
+              caches.open(CACHE_STATIC_NAME)
+                .then((cache) => {
+                  console.log('[Service worker] Precaching App shell');
+                  cache.addAll([
+                    '/',
+                    '/index.html',
+                    '/main.css'
+                  ]);
+                })
+            )
+          });
+    You can see that we are using waitUntill because the code will runthrough without waitin for the cache
+    to open and add the requests.
+  2. Dynamic
+    What about the requests sent during the user operations?
+          self.addEventListener('fetch', (event) => {
+            event.respondWith(
+              caches.match(event.request)
+                .then((response) => {
+                  if (response) {
+                    return response;
+                  }
 
+                  return fetch(event.request)
+                    .then((res) => {
+                      return caches.open(CACHE_DYNAMIC_NAME)
+                        .then((cache) => {
+                          cache.put(event.request.url, res.clone());
+                          return res;
+                        })
+                    });
+                })
+                .catch(err => {
+                  console.log(err);
+                })
+            );
+          });
+    You can use event.respondWith to intercept the fetch call and chain a promise return based on what you wanna
+    return.
+    DOCS: https://developer.mozilla.org/en-US/docs/Web/API/FetchEvent/respondWith
 
+  3. Clearing cache: versioning
+    Done during activation event.
+    Why? In this code we use a const but usually in PROD based apps we fetch a const version from the evn variables
+    like the github release version, we look for the caches that are not the latest and remove them. Cool huh!
+        self.addEventListener('activate', (event) => {
+          event.waitUntil(
+            caches.keys()
+              .then((keyList) => {
+                return Promise.all(keyList.map((key) => {
+                  if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
+                    console.log('[Service Worker] Removing old cache', key);
+                    return caches.delete(key);
+                  }
+                }));
+              })
+          )
+          return self.clients.claim(); //maynot be used but could create problems
+        });
 
-
-
+NOTE: you can observe that we are doing a resp.clone() to consume the response.
+      Please note that you can use the response only once, if you return response after using it in the code
+      then it will become null. This is a behaviour.
+      Exmplanation here: https://jakearchibald.com/2014/reading-responses/
